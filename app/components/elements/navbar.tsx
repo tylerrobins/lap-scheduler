@@ -12,13 +12,6 @@ function classNames(...classes: string[]) {
 export default function Navbar({ activeIndex }: { activeIndex: number }) {
 	const navigation = [
 		{ name: 'Home', href: '/', index: 0, current: activeIndex === 0 },
-		{ name: 'Timer', href: '/timer', index: 1, current: activeIndex === 1 },
-		{
-			name: 'Leaderboard',
-			href: '/leaderboard',
-			index: 2,
-			current: activeIndex === 2,
-		},
 	];
 	return (
 		<Disclosure
