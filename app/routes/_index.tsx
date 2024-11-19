@@ -1,9 +1,5 @@
 import { RouteHandle } from '../types/route-handle';
-import type {
-	ActionFunctionArgs,
-	LoaderFunctionArgs,
-	MetaFunction,
-} from '@remix-run/node';
+import type { MetaFunction } from '@remix-run/node';
 import {
 	Table,
 	TableBody,
@@ -16,7 +12,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { addRider, getRiders } from '@/servers/riders.server';
 import type { riderDetailType } from '@/types/session';
 import { useEffect, useState } from 'react';
 import { PencilIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -36,17 +31,10 @@ export const handle: RouteHandle = {
 	},
 };
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-	return getRiders(request);
-};
-
-export const action = async ({ request }: ActionFunctionArgs) => {
-	return await addRider(request);
-};
-
 export default function Index() {
 	const [newRider, setNewRider] = useState<string>('');
 	const [expectedLaps, setExpectedLaps] = useState<number>();
+	const [minMinutes, setMinMinutes] = useState<number>(0);
 	const [tableRiders, setTableRiders] = useState<riderDetailType[]>([]);
 	useEffect(() => {
 		const savedRiders = window.localStorage.getItem('riders');
@@ -68,8 +56,11 @@ export default function Index() {
 		}
 	}, [tableRiders]);
 
-	const addRiders = () => {
-		console.log('new rider:', newRider);
+	useEffect(() => {
+		console.log(minMinutes);
+	}, [minMinutes]);
+
+	const AddRiders = () => {
 		if (newRider !== '') {
 			const newRiderList = newRider.split(',');
 			newRiderList.forEach((rider) => {
@@ -95,6 +86,12 @@ export default function Index() {
 		setTableRiders(newTableRiders);
 	};
 
+	const OnSaveTime = (time: number, key: number) => {
+		tableRiders[key].laptime = time;
+		const newRiders = RunRiderOrdering(tableRiders, minMinutes);
+		setTableRiders(newRiders);
+	};
+
 	return (
 		<>
 			<header className="bg-white shadow">
@@ -115,6 +112,8 @@ export default function Index() {
 							className="px-auto font-semibold text-sm sm:text-lg w-[75px] "
 							type="number"
 							placeholder="Mins"
+							value={minMinutes}
+							onChange={(e) => setMinMinutes(Number(e.target.value))}
 						/>
 					</div>
 				</div>
@@ -127,7 +126,13 @@ export default function Index() {
 							<TableRow>
 								<TableHead className="w-[100px]">Rider</TableHead>
 								<TableHead className="w-[100px]">Lap Time</TableHead>
-								<TableHead>Starting Position</TableHead>
+								<TableHead className="w-[100px]">
+									Starting Position
+								</TableHead>
+								<TableHead className="w-[100px]">
+									Gap To Leaders
+								</TableHead>
+								<TableHead className="w-[100px]">Gap Between</TableHead>
 								<TableHead className="w-[25px] text-center">
 									Edit
 								</TableHead>
@@ -144,19 +149,26 @@ export default function Index() {
 									</TableCell>
 									<TableCell className="text-center p-0">
 										{rider.laptime ? (
-											<>{TimeDisplay(rider.laptime)}</>
+											<TimerModal
+												className="bg-transparent hover:bg-transparent text-black"
+												onSaveTime={(time) => OnSaveTime(time, key)}
+												initialTime={rider.laptime}
+											>
+												{TimeDisplay(rider.laptime)}
+											</TimerModal>
 										) : (
 											<TimerModal
 												className="bg-transparent hover:bg-transparent"
-												riderIndex={key}
-												tableRiders={tableRiders}
-												setTableRiders={setTableRiders}
+												onSaveTime={(time) => OnSaveTime(time, key)}
+												initialTime={rider.laptime}
 											>
 												<PlayIcon className="size-6 text-black" />
 											</TimerModal>
 										)}
 									</TableCell>
 									<TableCell>{rider.starting_position}</TableCell>
+									<TableCell>{rider.gap_leader}</TableCell>
+									<TableCell>{rider.gap_next_rider}</TableCell>
 									<TableCell className="text-center p-0">
 										<Button className="bg-transparent hover:bg-transparent">
 											<PencilIcon className="size-6 text-black" />
@@ -184,7 +196,7 @@ export default function Index() {
 							type="text"
 						/>
 						<Button
-							onClick={addRiders}
+							onClick={AddRiders}
 							className="px-8 bg-gray-800"
 						>
 							Add
@@ -212,38 +224,53 @@ function TimeDisplay(time: number) {
 	);
 }
 
-function RunRiderOrdering({
-	riderTable,
-	raceLength,
-}: {
-	riderTable: riderDetailType[];
-	raceLength: number;
-}) {
+function RunRiderOrdering(riderTable: riderDetailType[], raceLength: number) {
+	console.log('RUNNING RIDER ORDER');
 	const MINUTE = 1000 * 60;
-	let fastestTime = riderTable[0].laptime;
-	riderTable.forEach((rider) => {
-		if (rider.laptime && fastestTime && rider.laptime < fastestTime)
-			fastestTime = rider.laptime;
-	});
-	if (fastestTime) {
-		const raceLenghtInTime = raceLength * MINUTE;
-		const expectedLaps = Math.ceil(raceLenghtInTime / fastestTime);
-		riderTable.forEach((rider) => (rider.starting_position = null));
-		let sorting = true;
-		while (sorting) {
-			let slowestLap = 0;
-			let slowestLapIndex;
-			riderTable.forEach((rider, index) => {
-				if (rider.starting_position === null) {
-					if (rider.laptime > slowestLap) {
-						slowestLap = rider.laptime;
-						slowestLapIndex = index;
-					}
-				}
-			});
-			sorting = false;
+
+	// Return early if no riders
+	if (riderTable.length === 0) return riderTable;
+
+	// Find fastest lap time
+	const fastestTime = riderTable.reduce((fastest, rider) => {
+		if (!rider.laptime) return fastest;
+		return fastest === null
+			? rider.laptime
+			: Math.min(fastest, rider.laptime);
+	}, null as number | null);
+
+	// If no valid lap times, return unmodified table
+	if (!fastestTime) return riderTable;
+
+	// Calculate race parameters
+	const raceLengthInMs = raceLength * MINUTE;
+	const expectedLaps = Math.ceil(raceLengthInMs / fastestTime);
+
+	// Reset all starting positions
+	riderTable.forEach((rider) => (rider.starting_position = null));
+	// For each position (1 to number of riders)
+	for (let position = 1; position <= riderTable.length; position++) {
+		// Find the slowest unassigned rider
+		let slowestTime = 0;
+		let slowestRiderIndex = -1;
+
+		riderTable.forEach((rider, index) => {
+			if (
+				rider.starting_position === null &&
+				rider.laptime &&
+				rider.laptime > slowestTime
+			) {
+				slowestTime = rider.laptime;
+				slowestRiderIndex = index;
+			}
+		});
+
+		// Assign the position to the slowest rider
+		if (slowestRiderIndex !== -1) {
+			riderTable[slowestRiderIndex].starting_position = position;
 		}
-	} else return riderTable;
+	}
+	return [...riderTable];
 }
 
 function getTimeValues(time: number) {

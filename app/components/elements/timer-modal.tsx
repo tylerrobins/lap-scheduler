@@ -10,28 +10,25 @@ import {
 } from '../ui/dialog';
 import { useEffect, useRef, useState } from 'react';
 import { DialogClose } from '@radix-ui/react-dialog';
-import { riderDetailType } from '@/types/session';
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
 const HOUR = MINUTE * 60;
 
 export default function TimerModal({
-	riderIndex,
-	tableRiders,
-	setTableRiders,
+	onSaveTime,
+	initialTime = 0,
 	children,
 	className,
 }: {
-	riderIndex: number;
-	tableRiders: riderDetailType[];
-	setTableRiders: React.Dispatch<React.SetStateAction<riderDetailType[]>>;
+	onSaveTime: (time: number) => void;
+	initialTime?: number;
 	children?: React.ReactNode;
 	className?: string;
 }) {
 	const startTimeRef = useRef<number>(0);
 	const [reset, setReset] = useState<boolean>(true);
-	const [time, setTime] = useState<number>(0);
+	const [time, setTime] = useState<number>(initialTime);
 	const [isRunning, setIsRunning] = useState(false);
 
 	useEffect(() => {
@@ -70,12 +67,6 @@ export default function TimerModal({
 		setTime(0);
 	};
 
-	const saveRiderTime = () => {
-		const newRiderTable = [...tableRiders];
-		newRiderTable[riderIndex].laptime = time;
-		setTableRiders(newRiderTable);
-	};
-
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
@@ -112,7 +103,7 @@ export default function TimerModal({
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<DialogClose onClick={saveRiderTime}>Save</DialogClose>
+					<DialogClose onClick={() => onSaveTime(time)}>Save</DialogClose>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
