@@ -1,5 +1,11 @@
+import { useEffect } from 'react';
+import { useRemixForm } from 'remix-hook-form';
+import { useLoaderData, useSubmit } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { AddRiders, GetRiders } from '@/servers/riders.server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useRiders } from '@/lib/providers/riderProvider';
 import {
 	Table,
 	TableBody,
@@ -9,14 +15,12 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { useRiders } from '@/lib/providers/riderProvider';
-import { AddRiders, GetRiders } from '@/servers/riders.server';
-import type { RouteHandle } from '@/types/route-handle';
-import { riderDetailType } from '@/types/session';
 import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSubmit } from '@remix-run/react';
-import { useEffect } from 'react';
+import type { RouteHandle } from '@/types/route-handle';
+import {
+	RiderListData,
+	riderListResolver as resolver,
+} from '@/lib/form/riders';
 
 export const handle: RouteHandle = {
 	title: <TitleComponent />,
@@ -34,26 +38,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Riders() {
-	const loaderData = useLoaderData<riderDetailType[]>();
+	const loaderData = useLoaderData<typeof loader>();
 	const submit = useSubmit();
 	const { riders, RemoveRider, setRiders } = useRiders();
 
 	useEffect(() => {
 		if (loaderData) {
-			const riderList: string[] = [];
-			loaderData.forEach((rider) => riderList.push(rider.name));
-			setRiders(riderList);
+			setRiders(loaderData);
 		}
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-	const Next = () => {
-		const formData = new FormData();
-		riders.forEach((rider, index) => {
-			formData.append(`riders[${index}]`, rider);
-		});
-		submit(formData, {
-			method: 'post',
-		});
+	const {
+		formState: { isSubmitting },
+	} = useRemixForm<RiderListData>({ resolver });
+	const handleSubmit = () => {
+		const formattedRiders = riders.map((rider) => ({
+			name: rider.name,
+			laptime: 0,
+			starting_position: null,
+			laps: 0,
+			gap_leader: null,
+			gap_next_rider: null,
+		}));
+
+		submit(
+			{
+				riders: JSON.stringify(formattedRiders),
+			},
+			{
+				method: 'post',
+			}
+		);
 	};
 
 	return (
@@ -84,7 +99,7 @@ export default function Riders() {
 							{riders.map((rider, key) => (
 								<TableRow key={key}>
 									<TableCell className="font-medium">
-										{rider}
+										{rider.name}
 									</TableCell>
 									<TableCell className="text-center p-0">
 										<Button className="bg-transparent hover:bg-transparent">
@@ -106,9 +121,9 @@ export default function Riders() {
 					<div className="flex mt-3">
 						<Button
 							className="mx-auto px-8 bg-gray-800 w-[200px]"
-							onClick={Next}
+							onClick={handleSubmit}
 						>
-							Next
+							{isSubmitting ? 'Loading...' : 'Next'}
 						</Button>
 					</div>
 				</>

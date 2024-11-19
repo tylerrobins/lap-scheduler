@@ -1,4 +1,4 @@
-export type riderDetailType = {
+export type RiderDetailType = {
 	name: string;
 	laptime: number;
 	starting_position: number | null;

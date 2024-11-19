@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import type { riderDetailType } from '@/types/session';
+import type { RiderDetailType } from '@/types/session';
 import { useEffect, useState } from 'react';
 import { PencilIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import TimerModal from '@/components/elements/timer-modal';
@@ -48,7 +48,7 @@ export default function Index() {
 	const [minMinutes, setMinMinutes] = useState<number>(0);
 	const [expLaps, setExpLaps] = useState<number>(0);
 	const [expRaceLength, setExpRaceLength] = useState<number>(0);
-	const [tableRiders, setTableRiders] = useState<riderDetailType[]>([]);
+	const [tableRiders, setTableRiders] = useState<RiderDetailType[]>([]);
 	useEffect(() => {
 		const savedRiders = window.localStorage.getItem('riders');
 		if (savedRiders) {
@@ -96,7 +96,7 @@ export default function Index() {
 		if (newRider !== '') {
 			const newRiderList = newRider.split(',');
 			newRiderList.forEach((rider) => {
-				const riderObj: riderDetailType = {
+				const riderObj: RiderDetailType = {
 					name: rider,
 					laptime: 0,
 					starting_position: null,
@@ -111,7 +111,7 @@ export default function Index() {
 	};
 
 	const RemoveRider = (key: number) => {
-		const newTableRiders: riderDetailType[] = [];
+		const newTableRiders: RiderDetailType[] = [];
 		tableRiders.forEach((rider, index) => {
 			if (index !== key) newTableRiders.push(rider);
 		});
@@ -259,7 +259,7 @@ function TimeDisplay(time: number) {
 	);
 }
 
-function RunRiderOrdering(riderTable: riderDetailType[]) {
+function RunRiderOrdering(riderTable: RiderDetailType[]) {
 	console.log('RUNNING RIDER ORDER');
 	// Return early if no riders
 	if (riderTable.length === 0) return riderTable;
@@ -302,7 +302,7 @@ function RunRiderOrdering(riderTable: riderDetailType[]) {
 	return [...riderTable];
 }
 
-function TimeGaps(riderTable: riderDetailType[], raceLength: number) {
+function TimeGaps(riderTable: RiderDetailType[], raceLength: number) {
 	// Calculate race parameters
 	const raceLengthInMs = raceLength * MINUTE;
 	const expectedLaps = Math.ceil(raceLengthInMs / fastestTime);

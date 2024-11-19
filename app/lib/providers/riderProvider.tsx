@@ -1,8 +1,9 @@
+import { RiderDetailType } from '@/types/session';
 import { createContext, useContext, useState } from 'react';
 
 const RidersContext = createContext<{
-	riders: string[];
-	setRiders: (value: string[]) => void;
+	riders: RiderDetailType[];
+	setRiders: (value: RiderDetailType[]) => void;
 	newRider: string;
 	setNewRider: (value: string) => void;
 	AddRiders: () => void;
@@ -10,13 +11,24 @@ const RidersContext = createContext<{
 } | null>(null);
 
 export function RidersProvider({ children }: { children: React.ReactNode }) {
-	const [riders, setRiders] = useState<string[]>([]);
+	const [riders, setRiders] = useState<RiderDetailType[]>([]);
 	const [newRider, setNewRider] = useState<string>('');
 
 	const AddRiders = () => {
 		if (newRider !== '') {
 			const newRiderList = newRider.split(',').map((rider) => rider.trim());
-			setRiders((prevRiders) => [...prevRiders, ...newRiderList]);
+			const newRiderListObj: RiderDetailType[] = [];
+			newRiderList.forEach((rider) => {
+				newRiderListObj.push({
+					name: rider,
+					laptime: 0,
+					starting_position: null,
+					laps: 0,
+					gap_leader: null,
+					gap_next_rider: null,
+				});
+			});
+			setRiders((prevRiders) => [...prevRiders, ...newRiderListObj]);
 			setNewRider('');
 		}
 	};

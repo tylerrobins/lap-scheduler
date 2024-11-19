@@ -2,7 +2,7 @@ import { createCookieSessionStorage } from '@remix-run/node';
 
 export const riderDetailSessions = createCookieSessionStorage({
 	cookie: {
-		name: 'otp-session',
+		name: 'rider-session',
 		secure: process.env.NODE_ENV === 'production',
 		secrets: ['MTphA5dKxKWNWSKojQcOUZumvKjRgJyg'],
 		sameSite: 'lax',

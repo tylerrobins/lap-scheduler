@@ -1,16 +1,16 @@
 import { getValidatedFormData } from 'remix-hook-form';
 import { RiderListData, riderListResolver } from '@/lib/form/riders';
 import { riderDetailSessions } from '@/lib/sessionStorage';
-import type { riderDetailType } from '@/types/session';
+import type { RiderDetailType } from '@/types/session';
 import { redirect } from '@remix-run/react';
 
 export const GetRiders = async (
 	request: Request
-): Promise<riderDetailType[]> => {
+): Promise<RiderDetailType[]> => {
 	const session = await riderDetailSessions.getSession(
 		request.headers.get('Cookie')
 	);
-	const riders: riderDetailType[] = session.get('riders');
+	const riders: RiderDetailType[] = session.get('riders');
 	if (!riders) return [];
 	return riders;
 };
@@ -25,24 +25,16 @@ export const AddRiders = async ({
 	const session = await riderDetailSessions.getSession(
 		request.headers.get('Cookie')
 	);
-	const { data, errors } = await getValidatedFormData<RiderListData>(
-		request,
-		riderListResolver
-	);
+	const { data, errors, receivedValues } =
+		await getValidatedFormData<RiderListData>(request, riderListResolver);
 	if (errors) {
+		console.log('receivedValues:', receivedValues);
 		console.error('Error in validating rider list data');
 		return redirect('/riders');
 	}
-	const ridersDetails: riderDetailType[] = [];
+	const ridersDetails: RiderDetailType[] = [];
 	data.riders.forEach((rider) => {
-		ridersDetails.push({
-			name: rider,
-			laptime: 0,
-			starting_position: null,
-			laps: 0,
-			gap_leader: null,
-			gap_next_rider: null,
-		});
+		ridersDetails.push(rider);
 	});
 	session.set('riders', ridersDetails);
 	const headers = new Headers();
