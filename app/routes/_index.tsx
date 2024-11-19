@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { addRider, getRiders } from '@/servers/riders.server';
-import { useActionData, useLoaderData } from '@remix-run/react';
 import type { riderDetailType } from '@/types/session';
 import { useEffect, useState } from 'react';
 import { PencilIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -46,15 +45,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-	const loaderData: { riders: riderDetailType[] } = useLoaderData();
 	const [newRider, setNewRider] = useState<string>('');
 	const [expectedLaps, setExpectedLaps] = useState<number>();
-	const [tableRiders, setTableRiders] = useState<riderDetailType[]>(
-		loaderData.riders
-	);
+	const [tableRiders, setTableRiders] = useState<riderDetailType[]>([]);
+	useEffect(() => {
+		const savedRiders = window.localStorage.getItem('riders');
+		if (savedRiders) {
+			try {
+				setTableRiders(JSON.parse(savedRiders).data);
+			} catch (error) {
+				console.error('Error parsing saved riders:', error);
+			}
+		}
+	}, []);
 
 	useEffect(() => {
-		console.log('RIDERS:', tableRiders);
+		if (tableRiders.length > 0) {
+			window.localStorage.setItem(
+				'riders',
+				JSON.stringify({ data: tableRiders })
+			);
+		}
 	}, [tableRiders]);
 
 	const addRiders = () => {
@@ -64,13 +75,14 @@ export default function Index() {
 			newRiderList.forEach((rider) => {
 				const riderObj: riderDetailType = {
 					name: rider,
-					laptime: null,
+					laptime: 0,
 					starting_position: null,
 					gap_leader: null,
 					gap_next_rider: null,
 				};
 				tableRiders.push(riderObj);
 			});
+			setTableRiders([...tableRiders]);
 		}
 		setNewRider('');
 	};
@@ -216,7 +228,21 @@ function RunRiderOrdering({
 	if (fastestTime) {
 		const raceLenghtInTime = raceLength * MINUTE;
 		const expectedLaps = Math.ceil(raceLenghtInTime / fastestTime);
-		const minTime = 
+		riderTable.forEach((rider) => (rider.starting_position = null));
+		let sorting = true;
+		while (sorting) {
+			let slowestLap = 0;
+			let slowestLapIndex;
+			riderTable.forEach((rider, index) => {
+				if (rider.starting_position === null) {
+					if (rider.laptime > slowestLap) {
+						slowestLap = rider.laptime;
+						slowestLapIndex = index;
+					}
+				}
+			});
+			sorting = false;
+		}
 	} else return riderTable;
 }
 
