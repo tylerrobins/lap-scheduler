@@ -31,10 +31,15 @@ export const handle: RouteHandle = {
 	},
 };
 
+const SECOND = 1000;
+const MINUTE = SECOND * 60;
+const HOUR = MINUTE * 60;
+
 export default function Index() {
 	const [newRider, setNewRider] = useState<string>('');
-	const [expectedLaps, setExpectedLaps] = useState<number>();
 	const [minMinutes, setMinMinutes] = useState<number>(0);
+	const [expLaps, setExpLaps] = useState<number>(0);
+	const [expRaceLength, setExpRaceLength] = useState<number>(0);
 	const [tableRiders, setTableRiders] = useState<riderDetailType[]>([]);
 	useEffect(() => {
 		const savedRiders = window.localStorage.getItem('riders');
@@ -57,8 +62,27 @@ export default function Index() {
 	}, [tableRiders]);
 
 	useEffect(() => {
-		console.log(minMinutes);
-	}, [minMinutes]);
+		let fastestLap = Number.MAX_VALUE;
+		let isLaptime = false;
+		tableRiders.forEach((rider) => {
+			if (rider.laptime > 0) {
+				isLaptime = true;
+				if (rider.laptime < fastestLap) fastestLap = rider.laptime;
+			}
+		});
+		if (isLaptime) {
+			const minutesInTime = minMinutes * MINUTE;
+			if (minutesInTime > fastestLap) {
+				const expRaceLap = Math.ceil(minutesInTime / fastestLap);
+				const expRaceLength = expRaceLap * fastestLap;
+				setExpLaps(expRaceLap);
+				setExpRaceLength(expRaceLength);
+			}
+		} else {
+			setExpLaps(0);
+			setExpRaceLength(0);
+		}
+	}, [minMinutes, tableRiders]);
 
 	const AddRiders = () => {
 		if (newRider !== '') {
@@ -88,7 +112,7 @@ export default function Index() {
 
 	const OnSaveTime = (time: number, key: number) => {
 		tableRiders[key].laptime = time;
-		const newRiders = RunRiderOrdering(tableRiders, minMinutes);
+		const newRiders = RunRiderOrdering(tableRiders);
 		setTableRiders(newRiders);
 	};
 
@@ -101,9 +125,11 @@ export default function Index() {
 					</h1>
 					<div className="flex flex-col sm:flex-row items-center">
 						<div className="pr-10">
-							<h1 className="text-nowrap pr-2 text-sm">
-								Expected Laps: {expectedLaps}
-							</h1>
+							{expLaps > 0 && (
+								<h1 className="text-nowrap pr-2 text-sm">
+									Expected Laps: {expLaps}
+								</h1>
+							)}
 						</div>
 						<h1 className="text-nowrap pr-2 text-sm">
 							Minimum Race Length, in Minute:
@@ -206,6 +232,7 @@ export default function Index() {
 						To add mutliple riders - seperate their names with a comma
 						&quot;,&quot;
 					</p>
+					{expRaceLength > 0 && TimeDisplay(expRaceLength)}
 				</div>
 			</main>
 		</>
@@ -224,10 +251,8 @@ function TimeDisplay(time: number) {
 	);
 }
 
-function RunRiderOrdering(riderTable: riderDetailType[], raceLength: number) {
+function RunRiderOrdering(riderTable: riderDetailType[]) {
 	console.log('RUNNING RIDER ORDER');
-	const MINUTE = 1000 * 60;
-
 	// Return early if no riders
 	if (riderTable.length === 0) return riderTable;
 
@@ -241,10 +266,6 @@ function RunRiderOrdering(riderTable: riderDetailType[], raceLength: number) {
 
 	// If no valid lap times, return unmodified table
 	if (!fastestTime) return riderTable;
-
-	// Calculate race parameters
-	const raceLengthInMs = raceLength * MINUTE;
-	const expectedLaps = Math.ceil(raceLengthInMs / fastestTime);
 
 	// Reset all starting positions
 	riderTable.forEach((rider) => (rider.starting_position = null));
@@ -273,10 +294,13 @@ function RunRiderOrdering(riderTable: riderDetailType[], raceLength: number) {
 	return [...riderTable];
 }
 
+function TimeGaps(riderTable: riderDetailType[], raceLength: number) {
+	// Calculate race parameters
+	const raceLengthInMs = raceLength * MINUTE;
+	const expectedLaps = Math.ceil(raceLengthInMs / fastestTime);
+}
+
 function getTimeValues(time: number) {
-	const SECOND = 1000;
-	const MINUTE = SECOND * 60;
-	const HOUR = MINUTE * 60;
 	const hours = Math.floor(time / HOUR);
 	const minutes = Math.floor((time / MINUTE) % 60);
 	const seconds = Math.floor((time / SECOND) % 60);
