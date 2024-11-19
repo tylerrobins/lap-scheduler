@@ -3,10 +3,13 @@ import { createContext, useContext, useState } from 'react';
 const TimerContext = createContext<{
 	globalTrigger: boolean;
 	handleStartAll: () => void;
+	raceLength: number;
+	setRaceLength: (raceMins: number) => void;
 } | null>(null);
 
 export function UtilProvider({ children }: { children: React.ReactNode }) {
 	const [globalTrigger, setGlobalTrigger] = useState(false);
+	const [raceLength, setRaceLength] = useState<number>(0);
 
 	const handleStartAll = () => {
 		setGlobalTrigger(true);
@@ -16,7 +19,9 @@ export function UtilProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	return (
-		<TimerContext.Provider value={{ globalTrigger, handleStartAll }}>
+		<TimerContext.Provider
+			value={{ globalTrigger, handleStartAll, raceLength, setRaceLength }}
+		>
 			{children}
 		</TimerContext.Provider>
 	);

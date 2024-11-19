@@ -1,5 +1,6 @@
 import { TimeDisplay } from '@/components/elements/time-display';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
 	Table,
 	TableBody,
@@ -10,7 +11,11 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { useTimer } from '@/lib/providers/utilProviders';
-import { GetRiders, UpdateRiderTimes } from '@/servers/riders.server';
+import {
+	GetAllDetails,
+	GetRiders,
+	UpdateRiderTimes,
+} from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
 import { RiderDetailType } from '@/types/session';
 import {
@@ -36,9 +41,9 @@ export const handle: RouteHandle = {
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-	const riders = await GetRiders(request);
+	const { riders, race_length } = await GetAllDetails(request);
 	if (riders.length > 0) {
-		return riders;
+		return { riders, race_length };
 	} else {
 		return redirect('/riders');
 	}
@@ -51,11 +56,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Timer() {
 	const navigate = useNavigate();
 	const submit = useSubmit();
-	const loaderData = useLoaderData<typeof loader>();
-	const { globalTrigger } = useTimer();
-	const [riderDetails, setRiderDetails] =
-		useState<RiderDetailType[]>(loaderData);
+	const { riders, race_length } = useLoaderData<typeof loader>();
+	const { globalTrigger, raceLength, setRaceLength } = useTimer();
+	const [riderDetails, setRiderDetails] = useState<RiderDetailType[]>(riders);
 	const [error, setError] = useState<string>();
+
+	useEffect(() => {
+		if (race_length) setRaceLength(Number(race_length));
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const updateRiderTime = (key: number, newTime: number) => {
 		setRiderDetails((prev) =>
@@ -78,15 +86,20 @@ export default function Timer() {
 		riderDetails.forEach((rider) => {
 			if (rider.laptime === 0) submittable = false;
 		});
-		if (submittable) {
+		if (submittable && raceLength > 1) {
 			submit(
 				{
 					riders: JSON.stringify(riderDetails),
+					min_time: raceLength,
 				},
 				{ method: 'post' }
 			);
 		} else {
-			setError('Please ensure each rider has a time or remove the rider');
+			if (raceLength < 1) {
+				setError('Race length is required to continue');
+			} else {
+				setError('Please ensure each rider has a time or remove the rider');
+			}
 		}
 	};
 
@@ -166,18 +179,29 @@ export default function Timer() {
 }
 
 function TitleComponent() {
-	const { handleStartAll } = useTimer();
+	const { handleStartAll, raceLength, setRaceLength } = useTimer();
 	return (
 		<div className="flex flex-col sm:flex-row items-center">
 			<h1 className="text-3xl font-bold tracking-tight text-gray-900">
 				Timer
 			</h1>
-			<Button
-				onClick={handleStartAll}
-				className="px-8 bg-gray-800 sm:ml-auto"
-			>
-				Start All
-			</Button>
+			<div className="flex sm:ml-auto">
+				<div className="flex flex-row items-center">
+					<p className="text-nowrap mr-2">Race Length:</p>
+					<Input
+						className="w-[100px]"
+						type="number"
+						value={raceLength === 0 ? '' : raceLength}
+						onChange={(e) => setRaceLength(Number(e.target.value))}
+					/>
+				</div>
+				<Button
+					onClick={handleStartAll}
+					className="sm:ml-3 px-8 bg-gray-800"
+				>
+					Start All Timers
+				</Button>
+			</div>
 		</div>
 	);
 }

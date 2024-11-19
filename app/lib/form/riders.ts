@@ -21,7 +21,6 @@ export const riderListResolver = zodResolver(riderListSchema);
 const riderUpdateTimes = z.object({
 	riders: z.array(riderDetailsSchema),
 	min_time: z.number(),
-	laps: z.number(),
 });
 
 export type RiderUpdateTimesData = z.infer<typeof riderUpdateTimes>;

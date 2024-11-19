@@ -102,6 +102,8 @@ export default function Index() {
 					starting_position: null,
 					gap_leader: null,
 					gap_next_rider: null,
+					laps: 0,
+					race_time: 0,
 				};
 				tableRiders.push(riderObj);
 			});

@@ -11,7 +11,7 @@ import {
 import { GetRiders } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useNavigate } from '@remix-run/react';
 
 export const handle: RouteHandle = {
 	title: <TitleComponent />,
@@ -30,6 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function Race() {
+	const navigate = useNavigate();
 	const loaderData = useLoaderData<typeof loader>();
 	return (
 		<>
@@ -58,9 +59,15 @@ export default function Race() {
 					))}
 				</TableBody>
 			</Table>
-			<div className="flex mt-3">
+			<div className="flex flex-col sm:flex-row mt-3 mx-auto w-[200px] sm:w-[420px]">
 				<Button
-					className="mx-auto px-8 bg-gray-800 w-[200px]"
+					onClick={() => navigate('/timer')}
+					className="mx-1 px-8 bg-gray-800 w-full"
+				>
+					Timer
+				</Button>
+				<Button
+					className="mx-auto px-8 bg-gray-800 w-full"
 					// onClick={handleSubmit}
 				>
 					Next
