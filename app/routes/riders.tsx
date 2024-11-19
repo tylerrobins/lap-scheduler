@@ -33,7 +33,9 @@ export default function Riders() {
 
 	const Next = () => {
 		const formData = new FormData();
-		formData.append('riders', riders.toString());
+		riders.forEach((rider, index) => {
+			formData.append(`riders[${index}]`, rider);
+		});
 		submit(formData, {
 			method: 'post',
 		});
