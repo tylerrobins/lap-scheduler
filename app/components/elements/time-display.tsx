@@ -13,7 +13,7 @@ export function TimeDisplay({
 }) {
 	const { hours, minutes, seconds, milliseconds } = getTimeValues(time);
 	return (
-		<p className={cn('text-lg', className)}>
+		<p className={cn('text-base', className)}>
 			{hours > 0 && <>{hours.toString().padStart(2, '0')}:</>}
 			{minutes.toString().padStart(2, '0')}:
 			{seconds.toString().padStart(2, '0')}:

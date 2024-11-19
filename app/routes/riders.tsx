@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useRemixForm } from 'remix-hook-form';
 import { useLoaderData, useSubmit } from '@remix-run/react';
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { AddRiders, GetRiders } from '@/servers/riders.server';
@@ -17,10 +16,6 @@ import {
 } from '@/components/ui/table';
 import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { RouteHandle } from '@/types/route-handle';
-import {
-	RiderListData,
-	riderListResolver as resolver,
-} from '@/lib/form/riders';
 
 export const handle: RouteHandle = {
 	title: <TitleComponent />,
@@ -48,22 +43,10 @@ export default function Riders() {
 		}
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-	const {
-		formState: { isSubmitting },
-	} = useRemixForm<RiderListData>({ resolver });
 	const handleSubmit = () => {
-		const formattedRiders = riders.map((rider) => ({
-			name: rider.name,
-			laptime: 0,
-			starting_position: null,
-			laps: 0,
-			gap_leader: null,
-			gap_next_rider: null,
-		}));
-
 		submit(
 			{
-				riders: JSON.stringify(formattedRiders),
+				riders: JSON.stringify(riders),
 			},
 			{
 				method: 'post',
@@ -123,7 +106,7 @@ export default function Riders() {
 							className="mx-auto px-8 bg-gray-800 w-[200px]"
 							onClick={handleSubmit}
 						>
-							{isSubmitting ? 'Loading...' : 'Next'}
+							Next
 						</Button>
 					</div>
 				</>

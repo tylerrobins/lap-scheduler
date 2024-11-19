@@ -9,7 +9,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { GetRiders } from '@/servers/riders.server';
+import { useTimer } from '@/lib/providers/utilProviders';
+import { GetRiders, UpdateRiderTimes } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
 import { RiderDetailType } from '@/types/session';
 import {
@@ -18,8 +19,12 @@ import {
 	PencilIcon,
 	XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import {
+	ActionFunctionArgs,
+	LoaderFunctionArgs,
+	redirect,
+} from '@remix-run/node';
+import { useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
 import { PlayIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -39,18 +44,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	}
 };
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+	return UpdateRiderTimes({ request, successRedirectPath: '/race' });
+};
+
 export default function Timer() {
+	const navigate = useNavigate();
+	const submit = useSubmit();
 	const loaderData = useLoaderData<typeof loader>();
+	const { globalTrigger } = useTimer();
 	const [riderDetails, setRiderDetails] =
 		useState<RiderDetailType[]>(loaderData);
-	const [globalTrigger, setGlobalTrigger] = useState(false);
-
-	const handleStartAll = () => {
-		setGlobalTrigger(true);
-		setTimeout(() => {
-			setGlobalTrigger(false);
-		}, 1000);
-	};
+	const [error, setError] = useState<string>();
 
 	const updateRiderTime = (key: number, newTime: number) => {
 		setRiderDetails((prev) =>
@@ -66,13 +71,32 @@ export default function Timer() {
 		);
 	};
 
-	const EditRider = (key: number) => {};
+	const EditRider = () => {};
+
+	const handleSubmit = () => {
+		let submittable = true;
+		riderDetails.forEach((rider) => {
+			if (rider.laptime === 0) submittable = false;
+		});
+		if (submittable) {
+			submit(
+				{
+					riders: JSON.stringify(riderDetails),
+				},
+				{ method: 'post' }
+			);
+		} else {
+			setError('Please ensure each rider has a time or remove the rider');
+		}
+	};
 
 	return (
 		<>
-			<Button onClick={handleStartAll}>RUN ALL</Button>
 			<Table>
-				<TableCaption>List of Riders</TableCaption>
+				<TableCaption>
+					All times are required to continue, remove riders if you want to
+					continue without a time
+				</TableCaption>
 				<TableHeader>
 					<TableRow>
 						<TableHead className="">Rider</TableHead>
@@ -104,7 +128,7 @@ export default function Timer() {
 							/>
 							<TableCell className="text-center p-0 hidden sm:table-cell">
 								<Button
-									onClick={() => EditRider(key)}
+									onClick={() => EditRider()}
 									className="bg-transparent hover:bg-transparent"
 								>
 									<PencilIcon className="size-6 text-black" />
@@ -122,9 +146,18 @@ export default function Timer() {
 					))}
 				</TableBody>
 			</Table>
+			{error && <p className="text-center text-red-400 text-sm">{error}</p>}
 			<div className="flex flex-col sm:flex-row mt-3 mx-auto w-[200px] sm:w-[420px]">
-				<Button className="mx-1 px-8 bg-gray-800 w-full">Riders</Button>
-				<Button className="mx-1 px-8 mt-2 sm:mt-0 bg-gray-800 w-full">
+				<Button
+					onClick={() => navigate('/riders')}
+					className="mx-1 px-8 bg-gray-800 w-full"
+				>
+					Riders
+				</Button>
+				<Button
+					onClick={handleSubmit}
+					className="mx-1 px-8 mt-2 sm:mt-0 bg-gray-800 w-full"
+				>
 					Next
 				</Button>
 			</div>
@@ -133,8 +166,19 @@ export default function Timer() {
 }
 
 function TitleComponent() {
+	const { handleStartAll } = useTimer();
 	return (
-		<h1 className="text-3xl font-bold tracking-tight text-gray-900">Timer</h1>
+		<div className="flex flex-col sm:flex-row items-center">
+			<h1 className="text-3xl font-bold tracking-tight text-gray-900">
+				Timer
+			</h1>
+			<Button
+				onClick={handleStartAll}
+				className="px-8 bg-gray-800 sm:ml-auto"
+			>
+				Start All
+			</Button>
+		</div>
 	);
 }
 
@@ -191,7 +235,7 @@ function TimerTableBlock({
 	};
 	return (
 		<>
-			<TableCell className="font-medium w-[140px]">
+			<TableCell className="font-medium w-[120px]">
 				<TimeDisplay time={time} />
 			</TableCell>
 			<TableCell className="text-center p-0">
