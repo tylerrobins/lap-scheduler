@@ -8,6 +8,7 @@ const riderDetailsSchema = z.object({
 	laps: z.number(),
 	gap_leader: z.string().nullable(),
 	gap_next_rider: z.string().nullable(),
+	race_time: z.number(),
 });
 
 const riderListSchema = z.object({
@@ -16,3 +17,12 @@ const riderListSchema = z.object({
 
 export type RiderListData = z.infer<typeof riderListSchema>;
 export const riderListResolver = zodResolver(riderListSchema);
+
+const riderUpdateTimes = z.object({
+	riders: z.array(riderDetailsSchema),
+	min_time: z.number(),
+	laps: z.number(),
+});
+
+export type RiderUpdateTimesData = z.infer<typeof riderUpdateTimes>;
+export const riderUpdateTimesResolver = zodResolver(riderUpdateTimes);

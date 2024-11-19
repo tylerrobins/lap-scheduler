@@ -26,6 +26,7 @@ export function RidersProvider({ children }: { children: React.ReactNode }) {
 					laps: 0,
 					gap_leader: null,
 					gap_next_rider: null,
+					race_time: 0,
 				});
 			});
 			setRiders((prevRiders) => [...prevRiders, ...newRiderListObj]);

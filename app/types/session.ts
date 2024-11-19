@@ -5,4 +5,5 @@ export type RiderDetailType = {
 	laps: number;
 	gap_leader: string | null;
 	gap_next_rider: string | null;
+	race_time: number;
 };
