@@ -1,4 +1,17 @@
+import { Button } from '@/components/ui/button';
+import {
+	Table,
+	TableBody,
+	TableCaption,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
+import { GetRiders } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
+import { LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
 
 export const handle: RouteHandle = {
 	title: <TitleComponent />,
@@ -7,8 +20,54 @@ export const handle: RouteHandle = {
 	},
 };
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+	const riders = await GetRiders(request);
+	if (riders.length > 0) {
+		return riders;
+	} else {
+		return redirect('/riders');
+	}
+};
+
 export default function Race() {
-	return <h1>Race</h1>;
+	const loaderData = useLoaderData<typeof loader>();
+	return (
+		<>
+			<Table>
+				<TableCaption>Race Details</TableCaption>
+				<TableHeader>
+					<TableRow>
+						<TableHead className="">Rider</TableHead>
+						<TableHead className="">Starting Position</TableHead>
+						<TableHead className="">Laps</TableHead>
+						<TableHead className="">Gap</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{loaderData.map((rider, key) => (
+						<TableRow key={key}>
+							<TableCell className="font-medium">{rider.name}</TableCell>
+							<TableCell className="font-medium">
+								{rider.starting_position}
+							</TableCell>
+							<TableCell className="font-medium">{rider.laps}</TableCell>
+							<TableCell className="font-medium">
+								{rider.gap_next_rider}
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
+			<div className="flex mt-3">
+				<Button
+					className="mx-auto px-8 bg-gray-800 w-[200px]"
+					// onClick={handleSubmit}
+				>
+					Next
+				</Button>
+			</div>
+		</>
+	);
 }
 
 function TitleComponent() {
