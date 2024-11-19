@@ -11,6 +11,7 @@ import type { LinksFunction } from '@remix-run/node';
 import './tailwind.css';
 import Navbar from './components/elements/navbar';
 import { RouteHandle } from './types/route-handle';
+import { RidersProvider } from './lib/providers/riderProvider';
 
 export const links: LinksFunction = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -49,22 +50,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body className="h-full">
-				<div className="min-h-full">
-					<Navbar {...navbarProps} />
-					{children}
-					{/* <header className="bg-white shadow">
-						<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-							<h1 className="text-3xl font-bold tracking-tight text-gray-900">
+				<RidersProvider>
+					<div className="min-h-full">
+						<Navbar {...navbarProps} />
+						<header className="bg-white shadow">
+							<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 								{title}
-							</h1>
-						</div>
-					</header>
-					<main>
-						<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-							{children}
-						</div>
-					</main> */}
-				</div>
+							</div>
+						</header>
+						<main>
+							<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+								{children}
+							</div>
+						</main>
+					</div>
+				</RidersProvider>
 				<ScrollRestoration />
 				<Scripts />
 			</body>

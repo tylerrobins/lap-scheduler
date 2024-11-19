@@ -25,11 +25,19 @@ export const meta: MetaFunction = () => {
 };
 
 export const handle: RouteHandle = {
-	title: 'Home',
+	title: <TitleComponent />,
 	navbarProps: {
 		activeIndex: 0,
 	},
 };
+
+function TitleComponent() {
+	return (
+		<h1 className="text-3xl font-bold tracking-tight text-gray-900">
+			Riders
+		</h1>
+	);
+}
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;

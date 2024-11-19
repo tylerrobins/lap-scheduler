@@ -1,5 +1,6 @@
 import { riderDetailSessions } from '@/lib/sessionStorage';
 import type { riderDetailType, ridersCookieType } from '@/types/session';
+import { redirect } from '@remix-run/react';
 
 export const getRiders = async (
 	request: Request
@@ -24,7 +25,7 @@ export const addRider = async (request: Request) => {
 	if (typeof rider === 'string') {
 		ridersObj.push({
 			name: rider,
-			laptime: null,
+			laptime: 0,
 			starting_position: null,
 			gap_leader: null,
 			gap_next_rider: null,
@@ -38,4 +39,31 @@ export const addRider = async (request: Request) => {
 		return Response.json({ riders: ridersObj }, { headers });
 	}
 	return { riders: ridersObj };
+};
+
+export const AddRiders = async ({
+	request,
+	successRedirectPath,
+}: {
+	request: Request;
+	successRedirectPath: string;
+}) => {
+	const session = await riderDetailSessions.getSession(
+		request.headers.get('Cookie')
+	);
+	const ridersDetails: riderDetailType[] = session.get('riders') || [];
+	const formData = await request.formData();
+	const ridersList = formData.get('riders');
+	if (!ridersList) return redirect('/riders');
+	const newRiderList = ridersList.split(',').map((rider) => rider.trim());
+	const riders: riderDetailType[] = [];
+	console.log('RIDERS:', ridersList);
+	console.log('RIDERS TYPE:', typeof ridersList);
+	// session.set('riders', ridersDetails);
+	// const headers = new Headers();
+	// headers.append(
+	// 	'Set-Cookie',
+	// 	await riderDetailSessions.commitSession(riders)
+	// );
+	return null;
 };

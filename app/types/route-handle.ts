@@ -7,6 +7,6 @@ export type routeMatch = {
 };
 
 export type RouteHandle = {
-	title?: string;
+	title?: React.ReactNode;
 	navbarProps?: { activeIndex: number };
 };
