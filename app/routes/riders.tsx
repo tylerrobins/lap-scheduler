@@ -10,11 +10,13 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { useRiders } from '@/lib/providers/riderProvider';
-import { AddRiders } from '@/servers/riders.server';
+import { AddRiders, GetRiders } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
+import { riderDetailType } from '@/types/session';
 import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { ActionFunctionArgs } from '@remix-run/node';
-import { useSubmit } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { useLoaderData, useSubmit } from '@remix-run/react';
+import { useEffect } from 'react';
 
 export const handle: RouteHandle = {
 	title: <TitleComponent />,
@@ -23,13 +25,26 @@ export const handle: RouteHandle = {
 	},
 };
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+	return await GetRiders(request);
+};
+
 export const action = async ({ request }: ActionFunctionArgs) => {
 	return AddRiders({ request, successRedirectPath: '/timer' });
 };
 
 export default function Riders() {
+	const loaderData = useLoaderData<riderDetailType[]>();
 	const submit = useSubmit();
-	const { riders, RemoveRider } = useRiders();
+	const { riders, RemoveRider, setRiders } = useRiders();
+
+	useEffect(() => {
+		if (loaderData) {
+			const riderList: string[] = [];
+			loaderData.forEach((rider) => riderList.push(rider.name));
+			setRiders(riderList);
+		}
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const Next = () => {
 		const formData = new FormData();

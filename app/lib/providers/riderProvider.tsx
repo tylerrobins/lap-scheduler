@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 const RidersContext = createContext<{
 	riders: string[];
+	setRiders: (value: string[]) => void;
 	newRider: string;
 	setNewRider: (value: string) => void;
 	AddRiders: () => void;
@@ -11,6 +12,7 @@ const RidersContext = createContext<{
 export function RidersProvider({ children }: { children: React.ReactNode }) {
 	const [riders, setRiders] = useState<string[]>([]);
 	const [newRider, setNewRider] = useState<string>('');
+
 	const AddRiders = () => {
 		if (newRider !== '') {
 			const newRiderList = newRider.split(',').map((rider) => rider.trim());
@@ -25,7 +27,14 @@ export function RidersProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<RidersContext.Provider
-			value={{ riders, newRider, setNewRider, AddRiders, RemoveRider }}
+			value={{
+				riders,
+				setRiders,
+				newRider,
+				setNewRider,
+				AddRiders,
+				RemoveRider,
+			}}
 		>
 			{children}
 		</RidersContext.Provider>

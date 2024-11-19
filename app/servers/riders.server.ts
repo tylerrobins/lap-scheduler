@@ -1,17 +1,18 @@
 import { getValidatedFormData } from 'remix-hook-form';
 import { RiderListData, riderListResolver } from '@/lib/form/riders';
 import { riderDetailSessions } from '@/lib/sessionStorage';
-import type { riderDetailType, ridersCookieType } from '@/types/session';
+import type { riderDetailType } from '@/types/session';
 import { redirect } from '@remix-run/react';
 
-export const getRiders = async (
+export const GetRiders = async (
 	request: Request
-): Promise<ridersCookieType> => {
-	const riders = await riderDetailSessions.getSession(
+): Promise<riderDetailType[]> => {
+	const session = await riderDetailSessions.getSession(
 		request.headers.get('Cookie')
 	);
-
-	return { riders: riders.get('riders') || [] };
+	const riders: riderDetailType[] = session.get('riders');
+	if (!riders) return [];
+	return riders;
 };
 
 export const AddRiders = async ({

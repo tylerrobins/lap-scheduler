@@ -6,7 +6,3 @@ export type riderDetailType = {
 	gap_leader: string | null;
 	gap_next_rider: string | null;
 };
-
-export type ridersCookieType = {
-	riders: riderDetailType[];
-};
