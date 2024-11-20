@@ -11,11 +11,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { useTimer } from '@/lib/providers/utilProviders';
-import {
-	GetAllDetails,
-	GetRiders,
-	UpdateRiderTimes,
-} from '@/servers/riders.server';
+import { GetAllDetails, UpdateRiderTimes } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
 import { RiderDetailType } from '@/types/session';
 import {
@@ -86,6 +82,7 @@ export default function Timer() {
 		riderDetails.forEach((rider) => {
 			if (rider.laptime === 0) submittable = false;
 		});
+		console.log(raceLength);
 		if (submittable && raceLength > 1) {
 			submit(
 				{

@@ -1,3 +1,4 @@
+import { TimeDisplay } from '@/components/elements/time-display';
 import { Button } from '@/components/ui/button';
 import {
 	Table,
@@ -38,22 +39,39 @@ export default function Race() {
 				<TableCaption>Race Details</TableCaption>
 				<TableHeader>
 					<TableRow>
+						<TableHead className="w-[100px]">Start Pos.</TableHead>
 						<TableHead className="">Rider</TableHead>
-						<TableHead className="">Starting Position</TableHead>
 						<TableHead className="">Laps</TableHead>
-						<TableHead className="">Gap</TableHead>
+						<TableHead className="">To Leader</TableHead>
+						<TableHead className="">To Previous</TableHead>
+						<TableHead className="">Race Time</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
 					{loaderData.map((rider, key) => (
 						<TableRow key={key}>
-							<TableCell className="font-medium">{rider.name}</TableCell>
 							<TableCell className="font-medium">
 								{rider.starting_position}
 							</TableCell>
+							<TableCell className="font-medium">{rider.name}</TableCell>
 							<TableCell className="font-medium">{rider.laps}</TableCell>
 							<TableCell className="font-medium">
-								{rider.gap_next_rider}
+								<TimeDisplay
+									time={rider.gap_leader || 0}
+									showMili={false}
+								/>
+							</TableCell>
+							<TableCell className="font-medium">
+								<TimeDisplay
+									time={rider.gap_next_rider || 0}
+									showMili={false}
+								/>
+							</TableCell>
+							<TableCell className="font-medium">
+								<TimeDisplay
+									time={rider.race_time}
+									showMili={false}
+								/>
 							</TableCell>
 						</TableRow>
 					))}

@@ -6,8 +6,8 @@ const riderDetailsSchema = z.object({
 	laptime: z.number(),
 	starting_position: z.number().nullable(),
 	laps: z.number(),
-	gap_leader: z.string().nullable(),
-	gap_next_rider: z.string().nullable(),
+	gap_leader: z.number().nullable(),
+	gap_next_rider: z.number().nullable(),
 	race_time: z.number(),
 });
 

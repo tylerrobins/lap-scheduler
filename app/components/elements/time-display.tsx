@@ -6,9 +6,11 @@ const HOUR = MINUTE * 60;
 
 export function TimeDisplay({
 	time,
+	showMili = true,
 	className,
 }: {
 	time: number;
+	showMili?: boolean;
 	className?: string;
 }) {
 	const { hours, minutes, seconds, milliseconds } = getTimeValues(time);
@@ -16,8 +18,8 @@ export function TimeDisplay({
 		<p className={cn('text-base', className)}>
 			{hours > 0 && <>{hours.toString().padStart(2, '0')}:</>}
 			{minutes.toString().padStart(2, '0')}:
-			{seconds.toString().padStart(2, '0')}:
-			{milliseconds.toString().padStart(2, '0')}
+			{seconds.toString().padStart(2, '0')}
+			{showMili && <>:{milliseconds.toString().padStart(2, '0')}</>}
 		</p>
 	);
 }
