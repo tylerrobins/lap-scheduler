@@ -62,6 +62,7 @@ export default function Timer() {
 	const { globalTrigger, raceLength, setRaceLength } = useTimer();
 	const [riderDetails, setRiderDetails] = useState<RiderDetailType[]>(riders);
 	const [error, setError] = useState<string>();
+	const [editingName, setEditingName] = useState<string>('');
 
 	useEffect(() => {
 		if (race_length) setRaceLength(Number(race_length));
@@ -75,11 +76,11 @@ export default function Timer() {
 		);
 	};
 
-	// const RemoveRider = (key: number) => {
-	// 	setRiderDetails((prevRiders) =>
-	// 		prevRiders.filter((_, index) => index !== key)
-	// 	);
-	// };
+	const RemoveRider = (key: number) => {
+		setRiderDetails((prevRiders) =>
+			prevRiders.filter((_, index) => index !== key)
+		);
+	};
 
 	const handleSubmit = () => {
 		let submittable = true;
@@ -107,8 +108,9 @@ export default function Timer() {
 		<>
 			<Table>
 				<TableCaption>
-					All times are required to continue, remove riders if you want to
-					continue without a time
+					All times are required to continue.
+					<br />
+					Click on the rider or time to edit it.
 				</TableCaption>
 				<TableHeader>
 					<TableRow>
@@ -123,34 +125,77 @@ export default function Timer() {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{riderDetails.map((rider, key) => (
-						<TableRow key={key}>
-							<TableCell className="font-medium">{rider.name}</TableCell>
-							<TimerTableBlock
-								initialTime={rider.laptime}
-								onTimeUpdate={(newTime) =>
-									updateRiderTime(key, newTime)
-								}
-								globalTrigger={globalTrigger}
-							/>
-							{/* <TableCell className="text-center p-0 hidden sm:table-cell">
-								<Button
-									onClick={() => EditRider()}
-									className="bg-transparent hover:bg-transparent"
-								>
-									<PencilIcon className="size-6 text-black" />
-								</Button>
-							</TableCell>
-							<TableCell className="text-center p-0 hidden sm:table-cell">
-								<Button
-									onClick={() => RemoveRider(key)}
-									className="bg-transparent hover:bg-transparent"
-								>
-									<XMarkIcon className="size-6 text-black" />
-								</Button>
-							</TableCell> */}
-						</TableRow>
-					))}
+					{riderDetails.map((rider, key) => {
+						return (
+							<TableRow key={key}>
+								<TableCell className="font-medium p-3">
+									<Dialog>
+										<DialogTrigger asChild>
+											<Button
+												onClick={() => setEditingName(rider.name)}
+												className="py- pl-0 pr-auto bg-transparent hover:bg-transparent text-black text-base"
+											>
+												{rider.name}
+											</Button>
+										</DialogTrigger>
+										<DialogContent className="sm:max-w-[370px]">
+											<DialogHeader>
+												<DialogTitle>Edit Rider</DialogTitle>
+											</DialogHeader>
+											<div className="space-y-3 items-start pr-2 mt-2">
+												<Label
+													htmlFor="name"
+													className="text-right"
+												>
+													Name:
+												</Label>
+												<Input
+													id="name"
+													type="text"
+													defaultValue={editingName}
+													onChange={(e) =>
+														setEditingName(e.target.value)
+													}
+													className="w-full"
+												/>
+											</div>
+											<p className="text-xs text-zinc-400 px-0.5">
+												Make changes to the rider
+												<br />
+												or remove them here. <br />
+												Click save when you&apos;re done.
+											</p>
+											<hr className="mr-2" />
+											<DialogFooter className="flex flex-row w-full items-center pr-2">
+												<DialogClose
+													onClick={() => RemoveRider(key)}
+													className="w-[48%] py-2 rounded-md bg-gray-800 text-white mr-1"
+												>
+													Delete Rider
+												</DialogClose>
+												<DialogClose
+													onClick={() => {
+														rider.name = editingName;
+														setEditingName('');
+													}}
+													className="w-[48%] py-2 rounded-md bg-gray-800 text-white space-x-0"
+												>
+													Save Changes
+												</DialogClose>
+											</DialogFooter>
+										</DialogContent>
+									</Dialog>
+								</TableCell>
+								<TimerTableBlock
+									initialTime={rider.laptime}
+									onTimeUpdate={(newTime) =>
+										updateRiderTime(key, newTime)
+									}
+									globalTrigger={globalTrigger}
+								/>
+							</TableRow>
+						);
+					})}
 				</TableBody>
 			</Table>
 			{error && <p className="text-center text-red-400 text-sm">{error}</p>}
@@ -287,7 +332,7 @@ function TimerTableBlock({
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-[300px]">
 						<DialogHeader>
-							<DialogTitle>Edit time</DialogTitle>
+							<DialogTitle>Edit Time</DialogTitle>
 							<DialogDescription>
 								Make changes to your time here. Click save when
 								you&apos;re done.
