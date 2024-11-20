@@ -81,14 +81,11 @@ export default function Timer() {
 	// 	);
 	// };
 
-	// const EditRider = () => {};
-
 	const handleSubmit = () => {
 		let submittable = true;
 		riderDetails.forEach((rider) => {
 			if (rider.laptime === 0) submittable = false;
 		});
-		console.log(raceLength);
 		if (submittable && raceLength > 1) {
 			submit(
 				{

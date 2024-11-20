@@ -46,6 +46,7 @@ export default function Race() {
 						<TableHead className="">Laps</TableHead>
 						<TableHead className="">To Leader</TableHead>
 						<TableHead className="">To Previous</TableHead>
+						<TableHead className="">Lap Time</TableHead>
 						<TableHead className="">Race Time</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -77,6 +78,12 @@ export default function Race() {
 										showMili={false}
 									/>
 								)}
+							</TableCell>
+							<TableCell className="font-medium">
+								<TimeDisplay
+									time={rider.laptime}
+									showMili={false}
+								/>
 							</TableCell>
 							<TableCell className="font-medium">
 								<TimeDisplay
