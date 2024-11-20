@@ -1,6 +1,16 @@
-import { TimeDisplay } from '@/components/elements/time-display';
+import { getTimeValues, TimeDisplay } from '@/components/elements/time-display';
 import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
 	Table,
 	TableBody,
@@ -14,12 +24,8 @@ import { useTimer } from '@/lib/providers/utilProviders';
 import { GetAllDetails, UpdateRiderTimes } from '@/servers/riders.server';
 import type { RouteHandle } from '@/types/route-handle';
 import { RiderDetailType } from '@/types/session';
-import {
-	ArrowPathIcon,
-	PauseIcon,
-	PencilIcon,
-	XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowPathIcon, PauseIcon } from '@heroicons/react/24/outline';
+import { DialogClose } from '@radix-ui/react-dialog';
 import {
 	ActionFunctionArgs,
 	LoaderFunctionArgs,
@@ -69,13 +75,13 @@ export default function Timer() {
 		);
 	};
 
-	const RemoveRider = (key: number) => {
-		setRiderDetails((prevRiders) =>
-			prevRiders.filter((_, index) => index !== key)
-		);
-	};
+	// const RemoveRider = (key: number) => {
+	// 	setRiderDetails((prevRiders) =>
+	// 		prevRiders.filter((_, index) => index !== key)
+	// 	);
+	// };
 
-	const EditRider = () => {};
+	// const EditRider = () => {};
 
 	const handleSubmit = () => {
 		let submittable = true;
@@ -117,12 +123,6 @@ export default function Timer() {
 						<TableHead className="w-[45px] text-center">
 							Reset Timer
 						</TableHead>
-						<TableHead className="w-[35px] text-center hidden sm:table-cell">
-							Edit Time
-						</TableHead>
-						<TableHead className="w-[35px] text-center hidden sm:table-cell">
-							Delete Rider
-						</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -136,7 +136,7 @@ export default function Timer() {
 								}
 								globalTrigger={globalTrigger}
 							/>
-							<TableCell className="text-center p-0 hidden sm:table-cell">
+							{/* <TableCell className="text-center p-0 hidden sm:table-cell">
 								<Button
 									onClick={() => EditRider()}
 									className="bg-transparent hover:bg-transparent"
@@ -151,7 +151,7 @@ export default function Timer() {
 								>
 									<XMarkIcon className="size-6 text-black" />
 								</Button>
-							</TableCell>
+							</TableCell> */}
 						</TableRow>
 					))}
 				</TableBody>
@@ -182,8 +182,8 @@ function TitleComponent() {
 			<h1 className="text-3xl font-bold tracking-tight text-gray-900">
 				Timer
 			</h1>
-			<div className="flex sm:ml-auto">
-				<div className="flex flex-row items-center">
+			<div className="flex flex-col-reverse sm:flex-row sm:ml-auto">
+				<div className="flex flex-row items-center mt-2 sm:mt-0">
 					<p className="text-nowrap mr-2">Race Length:</p>
 					<Input
 						className="w-[100px]"
@@ -212,10 +212,16 @@ function TimerTableBlock({
 	onTimeUpdate: (time: number) => void;
 	globalTrigger?: boolean;
 }) {
+	const SECOND = 1000;
+	const MINUTE = SECOND * 60;
+	const HOUR = MINUTE * 60;
 	const startTimeRef = useRef<number>(0);
-	const [reset, setReset] = useState<boolean>(true);
+	const [reset, setReset] = useState<boolean>(false);
 	const [time, setTime] = useState<number>(initialTime);
 	const [isRunning, setIsRunning] = useState(false);
+	const [hrs, setHrs] = useState<number | null>();
+	const [mins, setMins] = useState<number | null>();
+	const [secs, setSecs] = useState<number | null>();
 
 	useEffect(() => {
 		let intervalId: NodeJS.Timeout;
@@ -254,10 +260,106 @@ function TimerTableBlock({
 		setReset(true);
 		setTime(0);
 	};
+
+	const setIncrements = () => {
+		const { hours, minutes, seconds } = getTimeValues(time);
+		setHrs(hours);
+		setMins(minutes);
+		setSecs(seconds);
+	};
+
+	const saveTimeChange = () => {
+		let newTime = 0;
+		if (hrs) newTime += hrs * HOUR;
+		if (mins) newTime += mins * MINUTE;
+		if (secs) newTime += secs * SECOND;
+		setTime(newTime);
+	};
+
 	return (
 		<>
-			<TableCell className="font-medium w-[120px]">
-				<TimeDisplay time={time} />
+			<TableCell className="font-medium w-[120px] p-0">
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button
+							onClick={setIncrements}
+							className="py-auto px-auto bg-transparent hover:bg-transparent text-black"
+						>
+							<TimeDisplay time={time} />
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-[300px]">
+						<DialogHeader>
+							<DialogTitle>Edit time</DialogTitle>
+							<DialogDescription>
+								Make changes to your time here. Click save when
+								you&apos;re done.
+							</DialogDescription>
+						</DialogHeader>
+						<div className="flex flex-col space-y-3 items-end pr-2 mt-2">
+							<div className="flex flex-row items-center gap-1">
+								<Label
+									htmlFor="hours"
+									className="text-right"
+								>
+									Hours:
+								</Label>
+								<Input
+									id="hours"
+									type="number"
+									defaultValue={hrs || 0}
+									onChange={(e) => setHrs(Number(e.target.value))}
+									className="w-[100px]"
+								/>
+							</div>
+							<div className="flex flex-row items-center gap-1">
+								<Label
+									htmlFor="minutes"
+									className="text-right"
+								>
+									Minutes:
+								</Label>
+								<Input
+									id="minutes"
+									type="number"
+									defaultValue={mins || 0}
+									onChange={(e) => {
+										const val = Number(e.target.value);
+										val <= 60 ? setMins(val) : setMins(60);
+									}}
+									className="w-[100px]"
+								/>
+							</div>
+							<div className="flex flex-row items-center gap-1">
+								<Label
+									htmlFor="seconds"
+									className="text-right"
+								>
+									Seconds:
+								</Label>
+								<Input
+									id="seconds"
+									type="number"
+									defaultValue={secs || 0}
+									onChange={(e) => setSecs(Number(e.target.value))}
+									className="w-[100px]"
+								/>
+							</div>
+						</div>
+						<p className="text-xs text-zinc-400 px-0.5">
+							If you insert values higher than 60 on both mins/secs it
+							will be set to 60
+						</p>
+						<DialogFooter className="pr-2">
+							<DialogClose
+								className="py-2 px-5 rounded-md bg-gray-800 text-white"
+								onClick={saveTimeChange}
+							>
+								Save time
+							</DialogClose>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</TableCell>
 			<TableCell className="text-center p-0">
 				<Button

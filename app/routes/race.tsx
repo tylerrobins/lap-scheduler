@@ -58,16 +58,25 @@ export default function Race() {
 							<TableCell className="font-medium">{rider.name}</TableCell>
 							<TableCell className="font-medium">{rider.laps}</TableCell>
 							<TableCell className="font-medium">
-								<TimeDisplay
-									time={rider.gap_leader || 0}
-									showMili={false}
-								/>
+								{rider.gap_leader === null || rider.gap_leader < 1 ? (
+									<p className="pl-2">----</p>
+								) : (
+									<TimeDisplay
+										time={rider.gap_leader || 0}
+										showMili={false}
+									/>
+								)}
 							</TableCell>
 							<TableCell className="font-medium">
-								<TimeDisplay
-									time={rider.gap_next_rider || 0}
-									showMili={false}
-								/>
+								{rider.gap_next_rider === null ||
+								rider.gap_next_rider < 1 ? (
+									<p className="pl-2">----</p>
+								) : (
+									<TimeDisplay
+										time={rider.gap_next_rider || 0}
+										showMili={false}
+									/>
+								)}
 							</TableCell>
 							<TableCell className="font-medium">
 								<TimeDisplay

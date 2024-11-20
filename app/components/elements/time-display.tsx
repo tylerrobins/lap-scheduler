@@ -24,7 +24,7 @@ export function TimeDisplay({
 	);
 }
 
-function getTimeValues(time: number) {
+export function getTimeValues(time: number) {
 	const hours = Math.floor(time / HOUR);
 	const minutes = Math.floor((time / MINUTE) % 60);
 	const seconds = Math.floor((time / SECOND) % 60);
