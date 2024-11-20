@@ -104,12 +104,12 @@ const GenerateRaceDetails = async (
 	if (riderDetails.length < 1) return riderDetails;
 	let newRiderDetails = [...riderDetails];
 	const raceLength = race_length * MINUTE;
-	let fastestTime = { time: newRiderDetails[0].laptime, index: 0 };
-	newRiderDetails.forEach((rider, index) => {
-		if (rider.laptime < fastestTime.time) {
-			fastestTime = { time: rider.laptime, index };
-		}
-	});
+	// let fastestTime = { time: newRiderDetails[0].laptime, index: 0 };
+	// newRiderDetails.forEach((rider, index) => {
+	// 	if (rider.laptime < fastestTime.time) {
+	// 		fastestTime = { time: rider.laptime, index };
+	// 	}
+	// });
 	newRiderDetails.forEach((rider) => {
 		rider.laps = Math.ceil(raceLength / rider.laptime);
 		rider.race_time = rider.laptime * rider.laps;
