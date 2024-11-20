@@ -23,11 +23,13 @@ export const handle: RouteHandle = {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const riders = await GetRiders(request);
-	if (riders.length > 0) {
-		return riders;
-	} else {
-		return redirect('/riders');
+	for (const rider of riders) {
+		if (rider.laptime < 1) {
+			return redirect('/timer');
+		}
 	}
+	if (riders.length === 0) return redirect('/riders');
+	return riders;
 };
 
 export default function Race() {

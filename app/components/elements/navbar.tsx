@@ -11,7 +11,6 @@ function classNames(...classes: string[]) {
 
 export default function Navbar({ activeIndex }: { activeIndex: number }) {
 	const navigation = [
-		{ name: 'Home', href: '/', index: 0, current: activeIndex === 0 },
 		{ name: 'Riders', href: '/riders', index: 1, current: activeIndex === 1 },
 		{ name: 'Timer', href: '/timer', index: 2, current: activeIndex === 2 },
 		{ name: 'Race', href: '/race', index: 3, current: activeIndex === 3 },
