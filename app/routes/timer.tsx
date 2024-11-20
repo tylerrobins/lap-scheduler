@@ -316,6 +316,7 @@ function TimerTableBlock({
 		if (mins) newTime += mins * MINUTE;
 		if (secs) newTime += secs * SECOND;
 		setTime(newTime);
+		onTimeUpdate(newTime);
 	};
 
 	return (
