@@ -226,7 +226,7 @@ function TitleComponent() {
 			</h1>
 			<div className="flex flex-col-reverse sm:flex-row sm:ml-auto">
 				<div className="flex flex-row items-center mt-2 sm:mt-0">
-					<p className="text-nowrap mr-2">Race Length:</p>
+					<p className="text-nowrap mr-2">Race Length, in mins:</p>
 					<Input
 						className="w-[100px]"
 						type="number"
